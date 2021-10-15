@@ -1,0 +1,7 @@
+{
+  "greeting": "Welcome to the Mortgage Calculator!",
+  "amount": "How much would you like to borrow?",
+  "duration": "Over how many months do you want your mortgage to be?",
+  "rate": "What's the interest rate?\nPlease enter the rate as a decimal.",
+  "again": "Would you like to use the Mortgage Calculator again? y/n"
+}

@@ -1,0 +1,7 @@
+{
+  "welcome": "Welcome to Calculator!",
+  "num1": "Give me the first number!",
+  "num2": "Give me the second number!",
+  "operation": "What operation do you want to perform?\n1) add 2) subtract 3) multiply 4) divide",
+  "restart": "Would you like to use the calculator again? y/n"
+}
