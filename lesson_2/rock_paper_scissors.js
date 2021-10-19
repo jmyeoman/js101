@@ -1,6 +1,6 @@
 const readline = require('readline-sync');
 const VALID_CHOICES = ['rock', 'paper', 'scissors', 'spock', 'lizard'];
-const WIN_LOSS_TABLE = { 'rock scissors': 1, 'rock lizard': 1, 'paper rock': 1, 
+const WIN_LOSS_TABLE = { 'rock scissors': 1, 'rock lizard': 1, 'paper rock': 1,
                      'paper spock': 1, 'scissors paper': 1, 'scissors lizard': 1, 
                      'spock rock': 1, 'spock scissors': 1, 'lizard spock': 1, 
                      'lizard paper': 1, 'rock paper': 2, 'rock spock': 2, 
@@ -23,10 +23,10 @@ function prompt(message) {
 function displayWinner(choice, computerChoice) {
   prompt(`You chose ${choice}, computer chose ${computerChoice}.`);
   switch (returnWinner(choice, computerChoice)) {
-    case 0: 
+    case 0:
       prompt("It's a tie");
       break;
-    case 1: 
+    case 1:
       prompt("You're the winner");
       break;
     case 2:
@@ -35,11 +35,26 @@ function displayWinner(choice, computerChoice) {
   }
 }
 
+let answer = 'y';
+
+function playAgain() {
+  prompt('Do you want to play again (y/n)?');
+  answer = readline.question().toLowerCase();
+  while (answer[0] !== 'n' && answer[0] !== 'y') {
+    prompt('Please enter "y" or "n"');
+    answer = readline.question().toLowerCase();
+  }
+}
+
 let playerWins = 0;
 let compWins = 0;
 
+function resetGame() {
+  playerWins = 0;
+  compWins = 0;
+}
+
 while (true) {
-  
   prompt(`Choose one: ${VALID_CHOICES.join(', ')}`);
   let choice = readline.question();
 
@@ -53,32 +68,26 @@ while (true) {
 
   displayWinner(choice, computerChoice);
   
-  if (returnWinner() === 1) {
+  if (returnWinner(choice, computerChoice) === 1) {
     playerWins += 1;
-  } else if (returnWinner() === 2) {
+  } else if (returnWinner(choice, computerChoice) === 2) {
     compWins += 1;
   }
 
   if (playerWins === 3) {
     prompt("You're the grand winner!");
-    break;
+    resetGame();
+    playAgain();
   } else if (compWins === 3) {
     prompt("Computer is the grand winner!");
-    break;
-  }
-  
-  prompt('Do you want to play again (y/n)?');
-  let answer = readline.question().toLowerCase();
-  while (answer[0] !== 'n' && answer[0] !== 'y') {
-    prompt('Please enter "y" or "n"');
-    answer = readline.question().toLowerCase();
+    resetGame();
+    playAgain();
+  } else {
+    playAgain();
   }
   
   if (answer[0] !== 'y') break;
-} 
-
-// Isn't incrementing and counting wins
-
+}
 
 /* #Unused function
 
@@ -145,3 +154,8 @@ function displayWinner(choice, computerChoice) {
   }
 
 */
+
+let numbers = [1, 2, 3];
+numbers[6] = 5;
+numbers[5] = undefined; // => [ 1, 2, 3, <2 empty items>, undefined, 5 ]
+numbers.map(() => 10);  // => [ 10, 10, 10, <2 empty items>, 10, 10 ]
