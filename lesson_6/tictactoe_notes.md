@@ -48,3 +48,16 @@ winning combos
 
 how to create subarrays
 
+Notes for possible changes
+1. use a prompt helper function X
+2. Convert numbers to spaces X
+3. help display with numbered squares
+4. trim square choice inputs
+5. change reset board to initialize board
+6. If I use spaces I have to change valid choice function 
+7. refactor play again function to switch statement
+8. replay is repeating the trimmed value X
+9. Create empty squares array to check and give options if changing to spaces
+10. Use INITIALIZED_MARKER constant for spaces
+11. Use HUMAN_ MARKER for X and COMPUTER_MARKER for O
+
