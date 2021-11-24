@@ -4,6 +4,7 @@ const INITIAL_MARKER = ' ';
 const HUMAN_MARKER = 'X';
 const COMPUTER_MARKER = 'O';
 
+
 function prompt(msg) {
   console.log(`=> ${msg}`);
 }
@@ -98,16 +99,26 @@ function detectWinner(board) {
   return null;
 }
 
+function chooseSquare(board, currentPlayer) {
+  if (currentPlayer === 'human') {
+    playerChoosesSquare(board);
+  } else if (currentPlayer === 'computer') {
+    computerChoosesSquare(board);
+  }
+}
+
+function alternatePlayer(currentPlayer) {
+  return currentPlayer === 'human' ? 'computer' : 'human';
+}
+
 while (true) {
   let board = initializeBoard();
-
+  let currentPlayer = 'human';
+  
   while (true) {
     displayBoard(board);
-
-    playerChoosesSquare(board);
-    if (someoneWon(board) || boardFull(board)) break;
-
-    computerChoosesSquare(board);
+    chooseSquare(board, currentPlayer)
+    currentPlayer = alternatePlayer(currentPlayer)
     if (someoneWon(board) || boardFull(board)) break;
   }
 
@@ -125,3 +136,5 @@ while (true) {
 }
 
 prompt('Thanks for playing Tic Tac Toe!');
+
+// creates infinite loop after first player choice

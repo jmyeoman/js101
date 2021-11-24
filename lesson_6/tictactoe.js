@@ -1,12 +1,14 @@
 
 const RLSYNC = require("readline-sync");
-const INITIAL_MARKER = ' '
-const HUMAN_MARKER = 'X'
-const COMPUTER_MARKER = 'O'
-let board = initializeBoard()
-let boardKeysArr = Object.keys(board);
+const INITIAL_MARKER = ' ';
+const HUMAN_MARKER = 'X';
+const COMPUTER_MARKER = 'O';
+let board = initializeBoard();
 let replay;
-let score = {human: 0, computer: 0};
+let score = initializeScore();
+const WHO_GOES_FIRST = 'choose' // valid options 'player', 'computer', or 'choose'
+let choice
+const NUMBER_OF_WINS_FOR_MATCH_WIN = 5
 const WINNING_COMBOS = [[1, 2, 3], 
                         [4, 5, 6], 
                         [7, 8, 9],
@@ -17,18 +19,17 @@ const WINNING_COMBOS = [[1, 2, 3],
                         [3, 5, 7],
                         ];
 
+
 while (true) {
   displayBoard();
-  userTurn(board);
-  compTurn(board);
+  playerOrder(WHO_GOES_FIRST)
   displayWinnerOrTie();
-  matchTracker()
   if (replay === 'n') break;
 }
 
 function displayBoard() {
   console.clear()
-  //possible bug on my system causes the first like of the initial prompt to be repeated
+  //possible bug on my system causes the first line of the initial prompt to be repeated
   //occurs with ls code as well
   console.log(`You are ${HUMAN_MARKER} and the computer is ${COMPUTER_MARKER}`);
   
@@ -49,6 +50,7 @@ function displayBoard() {
 
 
 function userTurn(board) {
+  if (someoneWon(COMPUTER_MARKER) || detectTie()) return null;
   let userChoice;
   while (true) {
     prompt(`It\'s your turn to pick a square!\nAvailable choices: ${joinOr(validChoices(board))}\n`)
@@ -62,27 +64,63 @@ function userTurn(board) {
 }
 
 function compTurn(board) {
-  if (someoneWon(HUMAN_MARKER) || detectTie()) return null
+  if (someoneWon(HUMAN_MARKER) || detectTie()) return null;
+  let compChoice;
   let randomIndex = Math.floor(Math.random() * validChoices(board).length);
   
-  let compChoice = validChoices(board)[randomIndex]
+  if (offenseAI()) {
+    compChoice = offenseAI();
+  } else if (defenseAI()) {
+    compChoice = defenseAI();
+  } else if (board[5] === INITIAL_MARKER) {
+    compChoice = 5;
+  } else {
+    compChoice = validChoices(board)[randomIndex];
+  }
+  
   board[compChoice] = COMPUTER_MARKER;
+  displayBoard()
 }
+
+
+
 
 function validChoices(board) {
   return Object.keys(board).filter(key => board[key] === INITIAL_MARKER);
 }
 
 function someoneWon(player) {
-  let currentCombos = WINNING_COMBOS.map(subArr => {
-   return subArr.map(element => {
-      return board[element];
-    });
-  });
+  let currentCombos = createCombos(board)
   return currentCombos.some(subArr => {
     return subArr.every(element => element === player);
   });
 }
+
+/*
+function createCombos() {
+  return WINNING_COMBOS.map(subArr => {
+    return subArr.map(element => {
+      return board[element]
+    })
+  })
+}
+*/
+
+function createCombos(board) {
+  return WINNING_COMBOS.map(subArr => {
+    return subArr.map(element => {
+      if (board[element] === HUMAN_MARKER) {
+        return board[element]
+      } else if (board[element] === COMPUTER_MARKER) {
+        return board[element]
+      } else {
+        return element
+      }
+    })
+  })
+}
+
+
 
 function detectTie() {
   return validChoices(board).length === 0
@@ -92,14 +130,17 @@ function displayWinnerOrTie() {
   if (someoneWon(HUMAN_MARKER)) {
     displayBoard();
     prompt('Congratulations you WIN!!!');
+    matchTracker();
     playAgain();
   } else if (someoneWon(COMPUTER_MARKER)) {
     displayBoard();
     prompt('Sorry! Computer Wins');
+    matchTracker()
     playAgain();
   } else if (detectTie()) {
     displayBoard();
     prompt('It\'s a tie!');
+    matchTracker()
     playAgain();
   }
   return null
@@ -165,7 +206,6 @@ function joinOr(arr, delimiter = ', ', conjunction = 'or') {
 // if either property value equals 5 declare match winner and reset scores
 
 function matchTracker() {
-
   if (someoneWon(HUMAN_MARKER)) {
     score.human += 1;
   } else if (someoneWon(COMPUTER_MARKER)) {
@@ -176,10 +216,12 @@ function matchTracker() {
     declareScore(score.human, score.computer);
   }
   
-  if (score.human === 5) {
-    matchWinner('you', score.human, score.computer);
-  } else if (score.computer === 5) {
-    matchWinner('computer', score.human, score.computer);
+  if (score.human === NUMBER_OF_WINS_FOR_MATCH_WIN) {
+    prompt('You are the Match WINNER!');
+    score = initializeScore()
+  } else if (score.computer === NUMBER_OF_WINS_FOR_MATCH_WIN) {
+    prompt('The Computer is the Match winner');
+    score = initializeScore()
   }
 }
 
@@ -189,13 +231,125 @@ function declareScore(humanScore, compScore) {
     prompt(`Computer: ${compScore}`);
 }
 
-function matchWinner(player, humanScore, compScore) {
-  prompt(`The match winner is ${player}`);
-  humanScore = 0
-  compScore = 0
+function initializeScore() {
+  let score = {human: 0, computer: 0}
+  return score
 }
 
+function offenseAI() {
+  let currentCombos = createCombos(board)
+  let compChoice = null
+  
+  for (let i = 0; i < currentCombos.length; i++) {
+    let count = 0;
+    let square = null;
+    for (let i2 = 0; i2 < currentCombos[i].length; i2++) {
+      if (currentCombos[i][i2] === COMPUTER_MARKER) {
+        count += 1
+      } else if (Number.isInteger(currentCombos[i][i2])) {
+        square = currentCombos[i][i2]
+      }
+    }
+    if (count === 2) {
+      compChoice = square
+      break
+    }
+  }
+  return compChoice
+}
 
+function defenseAI() {
+  let currentCombos = createCombos(board);
+  let compChoice = null;
+  
+  for (let i = 0; i < currentCombos.length; i++) {
+    let count = 0;
+    let square = null;
+    for (let i2 = 0; i2 < currentCombos[i].length; i2++) {
+      if (currentCombos[i][i2] === HUMAN_MARKER) {
+        count += 1;
+      } else if (Number.isInteger(currentCombos[i][i2])) {
+        square = currentCombos[i][i2];
+      }
+    }
+    if (count === 2) {
+      compChoice = square
+      break
+    }
+  }
+  return compChoice
+}  
+
+
+function playerOrder(WHO_GOES_FIRST) {
+ if (WHO_GOES_FIRST === 'player') {
+   userTurn(board);
+   compTurn(board);
+  } else if (WHO_GOES_FIRST === 'computer') {
+    compTurn(board);
+    userTurn(board);   
+    
+  } else if (WHO_GOES_FIRST === 'choose') {
+    while (true) {
+    if ((choice !== 'player') && (choice !== 'computer')) {
+      choice = RLSYNC.question("Who goes first? player/computer: ");
+        }
+    if (choice === 'player') {
+      userTurn(board);
+      compTurn(board);
+      break;
+      
+    } else if (choice === 'computer') {
+      compTurn(board);
+      userTurn(board);
+      break;   
+      
+    } else {
+          prompt("That isn't a valid choice");
+        }
+      }
+    }
+  }
+  
+
+
+// Problem
+// If two squares in a row are occupied by human_marker then Comp will always choose the third square
+// Input: Board, valid choices, and winning combos
+// output: add computer marker to board
+// Data structure: Arrays and Objects
+// Algorithm
+// Retrieve keys of board marked by human
+// loop through winning combos
+// if Human occupies 2 spots in a subarray then compchoice equals 3 spot
+
+  /*
+  currentCombos.forEach(subArr => {
+    let count = 0
+    subArr.forEach(element => {
+      if (element === HUMAN_MARKER) {
+        count += 1
+      }
+    })
+    if (count === 2) {
+      selectedCombo = subArr
+    }
+  })
+  */
+
+
+
+
+/*
+function hasTwoInARow() {
+  return WINNING_COMBOS.filter(subarray => {
+    let count = 0
+    subarray.forEach(element => {
+    
+    })
+  })
+}
+*/
 
 
 /* Might reuse this function

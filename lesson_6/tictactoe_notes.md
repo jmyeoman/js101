@@ -58,6 +58,7 @@ Notes for possible changes
 7. refactor play again function to switch statement
 8. replay is repeating the trimmed value X
 9. Create empty squares array to check and give options if changing to spaces
-10. Use INITIALIZED_MARKER constant for spaces
-11. Use HUMAN_ MARKER for X and COMPUTER_MARKER for O
+10. Use INITIALIZED_MARKER constant for spaces X
+11. Use HUMAN_ MARKER for X and COMPUTER_MARKER for O X
+12. 
 
