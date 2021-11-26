@@ -61,15 +61,24 @@ function busted(hand) {
 function hit(deck, hand, playerString) {
   hand.push(deck.shift());
   displayNewCard(hand, playerString);
+  prompt(`${playerString} cards are now ${displayHand(hand)} for a total of ${total(hand)}`);
+}
+
+function displayHand(hand) {
+  let firstCards = hand.slice(0, hand.length - 1)
+                       .map(element => element.join(''))
+                       .join(', ')
+  return `${firstCards}, and ${hand[hand.length - 1].join('')}`
 }
 
 function computerTurn(deck, playerHand, computerHand) {
   while (total(computerHand) < 17) {
     hit(deck, computerHand, 'The computer\'s');
   }
-
   prompt(`The computer's hole card was a ${computerHand[0][0]}${computerHand[0][1]}`);
-  if (busted(computerHand) || total(playerHand) > total(computerHand)) {
+  if (busted(computerHand)) {
+    prompt('Computer busted! You win!')
+  } else if (total(playerHand) > total(computerHand)) {
     prompt('You won!');
   } else if (total(playerHand) < total(computerHand)) {
     prompt('Sorry, you lose.');
@@ -97,7 +106,7 @@ while (true) {
     if (busted(playerHand)) break;
   }
   if (busted(playerHand)) {
-    prompt('Sorry, you lose.');
+    prompt('You busted! Sorry, you lose.');
   } else {
     prompt('You chose to stay!');
   }
