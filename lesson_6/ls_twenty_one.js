@@ -2,8 +2,10 @@ const readline = require('readline-sync');
 
 const SUITS = ['H', 'D', 'S', 'C'];
 const VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+const gameMax = 21
+const dealerMin = 17
 
-let playerWins = 5;
+let playerWins = 0;
 let dealerWins = 0;
 
 function prompt(message) {
@@ -52,20 +54,20 @@ function total(cards) {
 
   // correct for Aces
   values.filter(value => value === "A").forEach(_ => {
-    if (sum > 21) sum -= 10;
+    if (sum > gameMax) sum -= 10;
   });
 
   return sum;
 }
 
 function busted(total) {
-  return total > 21;
+  return total > gameMax;
 }
 
 function detectResult(dealerTotal, playerTotal) {
-  if (playerTotal > 21) {
+  if (playerTotal > gameMax) {
     return 'PLAYER_BUSTED';
-  } else if (dealerTotal > 21) {
+  } else if (dealerTotal > gameMax) {
     return 'DEALER_BUSTED';
   } else if (dealerTotal < playerTotal) {
     return 'PLAYER';
@@ -76,7 +78,9 @@ function detectResult(dealerTotal, playerTotal) {
   }
 }
 
-function gameTracker(dealerWins, playerWins, dealerTotal, playerTotal) {
+//grand total functions
+
+function gameTracker(dealerTotal, playerTotal) {
   let result = detectResult(dealerTotal, playerTotal);
   
   switch (result) {
@@ -89,10 +93,11 @@ function gameTracker(dealerWins, playerWins, dealerTotal, playerTotal) {
     case 'PLAYER':
       playerWins += 1;
       break;
-    case 'Dealer':
+    case 'DEALER':
       dealerWins += 1;
   }
 }
+
 
 function grandWinnerStatus(dealerWins, playerWins) {
   prompt(`The current score:`);
@@ -112,19 +117,19 @@ function displayGrandWinner(detectGrandWinner) {
   if (detectGrandWinner === 'DEALER') {
     prompt(`The Dealer is the grand winner`);
   } else if (detectGrandWinner === 'PLAYER') {
-    `You are the GRAND WINNER!`;
+    prompt(`You are the GRAND WINNER!`);
   }
 }
 
-function resetScore(detectGrandWinner, dealerWins, playerWins) {
+function resetScore(detectGrandWinner) {
   if ((detectGrandWinner === 'DEALER') || (detectGrandWinner === 'PLAYER')) {
     dealerWins = 0;
     playerWins = 0;
   }
 }
 
-function grandWinner(dealerWins, playerWins, dealerTotal, playerTotal) {
-  gameTracker(dealerWins, playerWins, dealerTotal, playerTotal);
+function grandWinner(dealerTotal, playerTotal) {
+  gameTracker(dealerTotal, playerTotal);
   
   grandWinnerStatus(dealerWins, playerWins);
   
@@ -132,7 +137,7 @@ function grandWinner(dealerWins, playerWins, dealerTotal, playerTotal) {
   
   displayGrandWinner(detectGrandWinner(dealerWins, playerWins));
   
-  resetScore(detectGrandWinner(dealerWins, playerWins), dealerWins, playerWins);
+  resetScore(detectGrandWinner(dealerWins, playerWins));
 }
 
 function displayResults(dealerTotal, playerTotal) {
@@ -157,10 +162,21 @@ function displayResults(dealerTotal, playerTotal) {
 }
 
 function playAgain() {
+  let answer
   console.log('-------------');
-  prompt('Do you want to play again? (y or n)');
-  let answer = readline.question();
-  return answer.toLowerCase()[0] === 'y';
+  while (true) {
+    prompt('Do you want to play again? (y or n)');
+    answer = readline.question();
+    if (answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes') {
+      answer = 'y';
+      break;
+    } else if (answer.toLowerCase() === 'n' || answer.toLowerCase() === 'no') {
+      break;
+    } else {
+      prompt('You didn\'t enter a valid response')
+    }
+  }
+  return answer === 'y'
 }
 
 function popTwoFromDeck(deck) {
@@ -173,10 +189,11 @@ function hand(cards) {
 
 function finalResults(dealerCards, playerCards, dealerTotal, playerTotal) {
     console.log('==============');
-  prompt(`Dealer has ${dealerCards}, for a total of: ${dealerTotal}`);
-  prompt(`Player has ${playerCards}, for a total of: ${playerTotal}`);
+  prompt(`Dealer has ${hand(dealerCards)}, for a total of: ${dealerTotal}`);
+  prompt(`Player has ${hand(playerCards)}, for a total of: ${playerTotal}`);
   console.log('==============');
 }
+
 
 while (true) {
   prompt('Welcome to Twenty-One!');
@@ -193,8 +210,8 @@ while (true) {
   let playerTotal = total(playerCards);
   let dealerTotal = total(dealerCards);
 
-  prompt(`Dealer has ${dealerCards[0]} and ?`);
-  prompt(`You have: ${playerCards[0]} and ${playerCards[1]}, for a total of ${playerTotal}.`);
+  prompt(`Dealer has ${dealerCards[0][0] + dealerCards[0][1]} and ?`);
+  prompt(`You have: ${hand(playerCards)} for a total of ${playerTotal}.`);
 
   // player turn
   while (true) {
@@ -203,11 +220,11 @@ while (true) {
     while (true) {
       prompt('Would you like to (h)it or (s)tay?');
       playerTurn = readline.question().toLowerCase();
-      if (['h', 's'].includes(playerTurn)) break;
+      if (['h', 's', 'hit', 'stay'].includes(playerTurn.toLowerCase())) break;
       prompt("Sorry, must enter 'h' or 's'.");
     }
 
-    if (playerTurn === 'h') {
+    if (playerTurn === 'h' || playerTurn === 'hit') {
       playerCards.push(deck.pop());
       playerTotal = total(playerCards);
       prompt('You chose to hit!');
@@ -215,7 +232,7 @@ while (true) {
       prompt(`Your total is now: ${playerTotal}`);
     }
 
-    if (playerTurn === 's' || busted(playerTotal)) break;
+    if (playerTurn === 's' || playerTurn === 'stay' || busted(playerTotal)) break;
   }
 
   if (busted(playerTotal)) {
@@ -223,7 +240,7 @@ while (true) {
  
     displayResults(dealerTotal, playerTotal);
  
-    grandWinner(dealerWins, playerWins, dealerTotal, playerTotal);
+    grandWinner(dealerTotal, playerTotal);
  
     if (playAgain()) {
       continue;
@@ -237,7 +254,7 @@ while (true) {
   // dealer turn
   prompt('Dealer turn...');
 
-  while (dealerTotal < 17) {
+  while (dealerTotal < dealerMin) {
     prompt(`Dealer hits!`);
     dealerCards.push(deck.pop());
     dealerTotal = total(dealerCards);
@@ -249,7 +266,7 @@ while (true) {
   
     displayResults(dealerTotal, playerTotal);
   
-    grandWinner(dealerWins, playerWins, dealerTotal, playerTotal);
+    grandWinner(dealerTotal, playerTotal);
   
     if (playAgain()) {
       continue;
@@ -265,11 +282,8 @@ while (true) {
 
   displayResults(dealerTotal, playerTotal);
 
-  grandWinner(dealerWins, playerWins, dealerTotal, playerTotal);
+  grandWinner(dealerTotal, playerTotal);
 
   if (!playAgain()) break;
 }
 
-// Bug:
-// dealerWins and playerWins are not incrementing
-// Seems to also be ignoring displayGrandWinner
